@@ -38,6 +38,7 @@ const statusConfig: Record<NotificationStatus, { label: string; variant: 'second
 };
 
 export function NotificationsTable({ initialNotifications, onLogout }: NotificationsTableProps) {
+
   const [notifications, setNotifications] = useState<Notification[]>(
     Array.isArray(initialNotifications) ? initialNotifications : []
   );
@@ -118,7 +119,8 @@ export function NotificationsTable({ initialNotifications, onLogout }: Notificat
                   <TableHead>Dispositivo</TableHead>
                   <TableHead>Estado</TableHead>
                   <TableHead>Fecha</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
+                  <TableHead>Acciones</TableHead>
+
                 </TableRow>
               </TableHeader>
               <TableBody>

@@ -7,7 +7,18 @@ import { AlertCircle } from 'lucide-react';
 export default async function NotificationsPage() {
   const result = await getNotifications();
 
-  console.log('Result from API:', result); // Debug
+  // APLANA Y AGREGA "id" USANDO "code"
+  let notifications = [];
+  if (
+    Array.isArray(result.data) &&
+    result.data.length > 0 &&
+    Array.isArray(result.data[0].data)
+  ) {
+    notifications = result.data[0].data.map(n => ({
+      ...n,
+      id: n.id, // si "code" es único, úsalo como "id"
+    }));
+  }
 
   if (!result.success) {
     return (
@@ -21,13 +32,7 @@ export default async function NotificationsPage() {
     );
   }
 
-  // Crear una función de logout del lado del cliente
-  const logoutAction = async () => {
-    'use server';
-    // Por ahora solo redirige, ajusta según tu implementación de Supabase
-    const { redirect } = await import('next/navigation');
-    redirect('/login');
-  };
-
-  return <NotificationsTable initialNotifications={result.data} onLogout={logoutAction} />;
+  return (
+    <NotificationsTable initialNotifications={notifications} />
+  );
 }

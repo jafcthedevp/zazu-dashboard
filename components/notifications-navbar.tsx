@@ -10,6 +10,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
+import { logout } from '@/app/login/action';
 
 type FilterStatus = 'all' | 'pending' | 'validated' | 'rejected';
 
@@ -30,6 +31,11 @@ export function NotificationsNavbar({
   counts,
   onLogout,
 }: NotificationsNavbarProps) {
+
+  const handleLogout = async() => {
+    await logout()
+  }
+
   return (
     <div className="border-b bg-background">
       <div className="container mx-auto">
@@ -97,7 +103,7 @@ export function NotificationsNavbar({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={onLogout} className="text-destructive">
+              <DropdownMenuItem onClick={handleLogout} className="text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
                 Cerrar sesión
               </DropdownMenuItem>
