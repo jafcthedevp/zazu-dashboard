@@ -9,6 +9,7 @@ export default async function NotificationsPage() {
   const result = await getNotifications();
 
   let notifications: any[] = [];
+  console.log(result)
 
   // LOGICA DEFENSIVA:
   // Forzamos el tipo 'any' en rawData para que TS no se queje de la estructura anidada.
@@ -29,7 +30,7 @@ export default async function NotificationsPage() {
       notifications = rawData;
     }
   }
-
+  
   // NORMALIZACIÓN:
   // Aseguramos que cada elemento tenga 'id' (usando 'code' si falta)
   // para cumplir con el esquema de NotificationSchema.

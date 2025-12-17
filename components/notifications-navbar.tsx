@@ -1,7 +1,8 @@
 // components/notifications-navbar.tsx
 'use client';
 
-import { LogOut } from 'lucide-react';
+import { LogOut, Search } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
   DropdownMenu,
@@ -12,17 +13,20 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { logout } from '@/app/login/action';
 
+
 type FilterStatus = 'all' | 'pending' | 'validated' | 'rejected';
 
 interface NotificationsNavbarProps {
-  onFilterChange: (status: FilterStatus) => void;
-  activeFilter: FilterStatus;
+  onFilterChange: (status: FilterStatus) => void
+  activeFilter: FilterStatus
   counts: {
-    pending: number;
-    validated: number;
-    rejected: number;
-  };
-  onLogout: () => void;
+    pending: number
+    validated: number
+    rejected: number
+  }
+  onLogout: () => void
+  searchQuery: string
+  onSearchChange: (query: string) => void
 }
 
 export function NotificationsNavbar({
@@ -30,7 +34,10 @@ export function NotificationsNavbar({
   activeFilter,
   counts,
   onLogout,
+  searchQuery,
+  onSearchChange,
 }: NotificationsNavbarProps) {
+
 
   const handleLogout = async() => {
     await logout()
@@ -38,63 +45,63 @@ export function NotificationsNavbar({
 
   return (
     <div className="border-b bg-background">
-      <div className="container mx-auto">
-        <div className="flex h-16 items-center justify-between">
-          <div className="flex items-center gap-6">
-            <h2 className="text-lg font-semibold">Notificaciones</h2>
-            
-            <nav className="flex items-center gap-1">
-              <Button
-                variant={activeFilter === 'all' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => onFilterChange('all')}
-              >
-                Todas
-              </Button>
-              
-              <Button
-                variant={activeFilter === 'pending' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => onFilterChange('pending')}
-                className="gap-2"
-              >
-                Pendientes
-                {counts.pending > 0 && (
-                  <Badge variant="secondary" className="ml-1">
-                    {counts.pending}
-                  </Badge>
-                )}
-              </Button>
-              
-              <Button
-                variant={activeFilter === 'validated' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => onFilterChange('validated')}
-                className="gap-2"
-              >
-                Validadas
-                {counts.validated > 0 && (
-                  <Badge variant="secondary" className="ml-1">
-                    {counts.validated}
-                  </Badge>
-                )}
-              </Button>
-              
-              <Button
-                variant={activeFilter === 'rejected' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => onFilterChange('rejected')}
-                className="gap-2"
-              >
-                Rechazadas
-                {counts.rejected > 0 && (
-                  <Badge variant="secondary" className="ml-1">
-                    {counts.rejected}
-                  </Badge>
-                )}
-              </Button>
-            </nav>
+      <div className="container mx-auto px-4 py-4 max-w-7xl">
+      <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <h1 className="text-xl font-semibold">Notificaciones</h1>
           </div>
+
+          <nav className="flex items-center gap-1">
+            <Button
+              variant={activeFilter === "all" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => onFilterChange("all")}
+            >
+              Todas
+            </Button>
+
+            <Button
+              variant={activeFilter === "pending" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => onFilterChange("pending")}
+              className="gap-2"
+            >
+              Pendientes
+              {counts.pending > 0 && (
+                <Badge variant="secondary" className="ml-1">
+                  {counts.pending}
+                </Badge>
+              )}
+            </Button>
+
+            <Button
+              variant={activeFilter === "validated" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => onFilterChange("validated")}
+              className="gap-2"
+            >
+              Validadas
+              {counts.validated > 0 && (
+                <Badge variant="secondary" className="ml-1">
+                  {counts.validated}
+                </Badge>
+              )}
+            </Button>
+
+            <Button
+              variant={activeFilter === "rejected" ? "default" : "ghost"}
+              size="sm"
+              onClick={() => onFilterChange("rejected")}
+              className="gap-2"
+            >
+              Rechazadas
+              {counts.rejected > 0 && (
+                <Badge variant="secondary" className="ml-1">
+                  {counts.rejected}
+                </Badge>
+              )}
+            </Button>
+          </nav>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -110,7 +117,21 @@ export function NotificationsNavbar({
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
+          <div className="mt-4">
+          <div className="relative max-w-md">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+            <Input
+              type="text"
+              placeholder="Buscar por código, dispositivo o monto..."
+              value={searchQuery}
+              onChange={(e) => onSearchChange(e.target.value)}
+              className="pl-9"
+            />
+          </div>
+        </div>
+        </div>
       </div>
-    </div>
+    
+    
   );
 }
