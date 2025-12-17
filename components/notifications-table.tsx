@@ -109,9 +109,9 @@ export function NotificationsTable({ initialNotifications, onLogout }: Notificat
       <div className="flex-1 overflow-auto">
         <div className="container mx-auto py-6">
           <div className="rounded-md border">
-            <Table>
+            <Table className="border">
               <TableHeader>
-                <TableRow>
+                <TableRow className="border-b">
                   <TableHead>Código</TableHead>
                   <TableHead>Nombre</TableHead>
                   <TableHead>Monto</TableHead>

@@ -46,7 +46,7 @@ export default async function NotificationsPage() {
 
   if (!result.success) {
     return (
-      <div className="container mx-auto py-10">
+      <div className="container mx-auto py-10 ">
         <Alert variant="destructive">
           <AlertCircle className="h-4 w-4" />
           <AlertTitle>Error</AlertTitle>
