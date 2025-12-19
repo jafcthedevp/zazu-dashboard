@@ -87,7 +87,7 @@ export function NotificationsFilters({
           </SheetDescription>
         </SheetHeader>
 
-        <div className="space-y-6 py-6">
+        <div className="space-y-6 py-6 mx-3.5">
           {/* Filtro por código */}
           <div className="space-y-2">
             <Label htmlFor="code">Código de voucher</Label>
