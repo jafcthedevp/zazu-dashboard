@@ -25,3 +25,13 @@ export const UpdateStatusSchema = z.object({
 });
 
 export type UpdateStatusPayload = z.infer<typeof UpdateStatusSchema>;
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    page: number;
+    pageSize: number;
+    total: number;
+    totalPages: number;
+  };
+}
