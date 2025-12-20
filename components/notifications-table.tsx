@@ -13,6 +13,7 @@ import { NotificationsNavbar } from "@/components/notifications-navbar"
 import type { FilterValues } from "@/components/notifications-filters"
 import { updateNotificationStatus } from "@/app/dashboard/action"
 import type { Notification, NotificationStatus, PaginationInfo } from "@/types/notifications"
+import { toast } from "sonner";
 
 type FilterStatus = "all" | "pending" | "validated" | "rejected"
 
@@ -41,13 +42,19 @@ export function NotificationsTable({
   const router = useRouter()
   const searchParams = useSearchParams()
 
+  const [cursorHistory, setCursorHistory] = useState<string[]>([]);
   const [notifications, setNotifications] = useState(initialNotifications)
   const [searchQuery, setSearchQuery] = useState("")
   const [isUpdating, setIsUpdating] = useState<string | null>(null)
+  const [debouncedSearchQuery, setDebouncedSearchQuery] = useState(searchQuery);
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchQuery(searchQuery);
+    }, 300);
+
     setNotifications(initialNotifications)
-  }, [initialNotifications])
+  }, [initialNotifications, searchQuery])
 
   const activeFilter = (initialFilters.status as FilterStatus) || "all"
 
@@ -69,17 +76,17 @@ export function NotificationsTable({
   }, [notifications])
 
   const filteredNotifications = useMemo(() => {
-    if (!searchQuery) return notifications
+    if (!debouncedSearchQuery) return notifications;
 
-    const query = searchQuery.toLowerCase()
+    const query = debouncedSearchQuery.toLowerCase();
     return notifications.filter(
       (n) =>
         n.code?.toLowerCase().includes(query) ||
         n.name?.toLowerCase().includes(query) ||
         n.device_id?.toLowerCase().includes(query) ||
         n.amount?.toString().includes(query),
-    )
-  }, [notifications, searchQuery])
+    );
+  }, [notifications, debouncedSearchQuery]);
 
   const updateUrlParams = (newParams: Record<string, string | undefined>) => {
     const params = new URLSearchParams(searchParams.toString())
@@ -103,41 +110,61 @@ export function NotificationsTable({
   }
 
   const handleAdvancedFilters = (filters: FilterValues) => {
-    const isClearing = Object.keys(filters).length === 0
+    const isClearing = Object.keys(filters).length === 0;
 
     if (isClearing) {
-      // Limpiar todos los parámetros de la URL
-      router.push("/dashboard")
+      const params = new URLSearchParams();
+      if (activeFilter !== "all") {
+        params.set("status", activeFilter);
+      }
+      router.push(`/dashboard${params.toString() ? '?' + params.toString() : ''}`);
     } else {
       updateUrlParams({
         ...filters,
         status: activeFilter === "all" ? undefined : activeFilter,
-      })
+      });
     }
-  }
+  };
 
   const handleStatusUpdate = async (id: string, newStatus: NotificationStatus) => {
-    setIsUpdating(id)
+    setIsUpdating(id);
     try {
-      const result = await updateNotificationStatus(id, newStatus)
+      const result = await updateNotificationStatus(id, newStatus);
       if (result.success) {
-        setNotifications((prev) => prev.map((n) => (n.id === id ? { ...n, status: newStatus } : n)))
+        setNotifications((prev) =>
+          prev.map((n) => (n.id === id ? { ...n, status: newStatus } : n))
+        );
+        toast.success("Estado actualizado correctamente");
+      } else {
+        toast.error(result.error || "Error al actualizar el estado");
       }
     } catch (error) {
-      console.error("Error updating status:", error)
+      console.error("Error updating status:", error);
+      toast.error("Error al actualizar el estado");
     } finally {
-      setIsUpdating(null)
+      setIsUpdating(null);
     }
-  }
+  };
 
   const handlePageChange = (newPage: number) => {
-    const params = new URLSearchParams(searchParams.toString())
-    params.set("page", newPage.toString())
-    if (pagination.lastKey && newPage > pagination.page) {
-      params.set("lastKey", pagination.lastKey)
+    const params = new URLSearchParams(searchParams.toString());
+    params.set("page", newPage.toString());
+
+    if (newPage > pagination.page) {
+      if (pagination.lastKey) {
+        setCursorHistory(prev => [...prev, pagination.lastKey!]);
+        params.set("lastKey", pagination.lastKey);
+      }
+    } else if (newPage < pagination.page) {
+      const previousCursor = cursorHistory[cursorHistory.length - 2];
+      if (previousCursor) {
+        params.set("lastKey", previousCursor);
+      }
+      setCursorHistory(prev => prev.slice(0, -1));
     }
-    router.push(`/dashboard?${params.toString()}`)
-  }
+
+    router.push(`/dashboard?${params.toString()}`);
+  };
 
   const formatDate = (timestamp: number) => {
     return new Date(timestamp).toLocaleDateString("es-ES", {
@@ -153,7 +180,7 @@ export function NotificationsTable({
     if (amount === undefined) return "-"
     return new Intl.NumberFormat("es-ES", {
       style: "currency",
-      currency: "USD",
+      currency: "PEN",
     }).format(amount)
   }
 
@@ -272,7 +299,8 @@ export function NotificationsTable({
 
         <div className="mt-4 flex items-center justify-between">
           <p className="text-sm text-muted-foreground">
-            Mostrando {filteredNotifications.length} de {pagination.total} notificaciones
+            Mostrando {filteredNotifications.length} resultados
+            {pagination.hasMore && " (hay más disponibles)"}
           </p>
           <div className="flex items-center gap-2">
             <Button

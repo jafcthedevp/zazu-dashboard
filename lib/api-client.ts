@@ -12,7 +12,6 @@ export const apiClient = axios.create({
   },
 });
 
-// Interceptor para REQUEST
 apiClient.interceptors.request.use(
   (config) => {
     console.log('🚀 API REQUEST:', {
@@ -30,7 +29,6 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Interceptor para RESPONSE
 apiClient.interceptors.response.use(
   (response) => {
     console.log('✅ API RESPONSE:', {
@@ -55,7 +53,6 @@ apiClient.interceptors.response.use(
   }
 );
 
-// Helper para convertir last_key a cursor
 function parseLastKey(lastKeyString?: string): any {
   if (!lastKeyString) return undefined;
   try {
@@ -66,10 +63,6 @@ function parseLastKey(lastKeyString?: string): any {
 }
 
 export const notificationsApi = {
-  /**
-   * GET /notifications
-   * Tu API usa: ?limit=20&last_key={...}
-   */
   getAll: async (
     page: number = 1,
     pageSize: number = DEFAULT_PAGE_SIZE,
@@ -81,7 +74,6 @@ export const notificationsApi = {
       limit: pageSize,
     };
 
-    // Si hay lastKey, agregarlo
     if (lastKey) {
       params.last_key = lastKey;
     }
@@ -95,14 +87,13 @@ export const notificationsApi = {
       dataLength: data.data?.length,
     });
 
-    // Adaptar respuesta de cursor-based a page-based para el frontend
     const result: PaginatedResponse<Notification> = {
       data: data.data || [],
       pagination: {
         page: page,
         pageSize: pageSize,
-        total: data.count || 0, // El total exacto no viene en la API
-        totalPages: data.has_more ? page + 1 : page, // Estimado
+        total: data.count || 0,
+        totalPages: data.has_more ? page + 1 : page,
         hasMore: data.has_more || false,
         lastKey: data.last_key,
       }
@@ -231,20 +222,32 @@ export const notificationsApi = {
   }): Promise<PaginatedResponse<Notification>> => {
     console.log('🔎 search() called with params:', params);
 
-    // Convertir fechas ISO a timestamps si existen
     let fromTimestamp: number | undefined;
     let toTimestamp: number | undefined;
 
-    if (params.dateFrom) {
-      fromTimestamp = new Date(params.dateFrom).getTime();
-    }
+    const parseDateToTimestamp = (dateStr: string, endOfDay = false): number | undefined => {
+      try {
+        const date = new Date(dateStr);
 
-    if (params.dateTo) {
-      const toDate = new Date(params.dateTo);
-      toDate.setHours(23, 59, 59, 999);
-      toTimestamp = toDate.getTime();
-    }
+        if (isNaN(date.getTime())) {
+          console.warn(`Invalid date: ${dateStr}`);
+          return undefined;
+        }
 
+        if (endOfDay) {
+          date.setHours(23, 59, 59, 999);
+        } else {
+          date.setHours(0, 0, 0, 0);
+        }
+
+        return date.getTime();
+      } catch (error) {
+        console.error(`Error parsing date ${dateStr}:`, error);
+        return undefined;
+      }
+    };
+
+    // Usar en search:
     const searchParams: any = {
       limit: params.pageSize || DEFAULT_PAGE_SIZE,
     };
