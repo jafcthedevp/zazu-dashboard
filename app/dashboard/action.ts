@@ -8,8 +8,10 @@ export async function updateNotificationStatus(
   id: string,
   status: NotificationStatus
 ) {
+
   try {
     const validatedData = UpdateStatusSchema.parse({ status });
+
     const updatedNotification = await notificationsApi.updateStatus(id, validatedData);
 
     revalidatePath('/dashboard');
@@ -19,7 +21,6 @@ export async function updateNotificationStatus(
       data: updatedNotification,
     };
   } catch (error) {
-    console.error('Error updating notification:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Error desconocido',
@@ -27,9 +28,6 @@ export async function updateNotificationStatus(
   }
 }
 
-/**
- * Obtener notificaciones con filtros avanzados
- */
 export async function getNotifications(
   page: number = 1,
   pageSize: number = DEFAULT_PAGE_SIZE,
@@ -41,41 +39,67 @@ export async function getNotifications(
     amountMax?: string;
     dateFrom?: string;
     dateTo?: string;
+    lastKey?: string; // ← NUEVO: para cursor pagination
   }
 ) {
+
   try {
     let response;
+    let endpointUsed = '';
 
-    // Si hay filtros, usar el endpoint de búsqueda
-    if (filters && Object.keys(filters).length > 0) {
+    const hasComplexFilters = filters && (
+      filters.code ||
+      filters.amountMin ||
+      filters.amountMax ||
+      filters.dateFrom ||
+      filters.dateTo
+    );
+
+    if (hasComplexFilters) {
+      endpointUsed = 'search';
+
       response = await notificationsApi.search({
-        code: filters.code,
-        deviceId: filters.deviceId,
-        status: filters.status,
-        amountMin: filters.amountMin ? parseFloat(filters.amountMin) : undefined,
-        amountMax: filters.amountMax ? parseFloat(filters.amountMax) : undefined,
-        dateFrom: filters.dateFrom,
-        dateTo: filters.dateTo,
+        code: filters!.code,
+        deviceId: filters!.deviceId,
+        status: filters!.status,
+        amountMin: filters!.amountMin ? parseFloat(filters!.amountMin) : undefined,
+        amountMax: filters!.amountMax ? parseFloat(filters!.amountMax) : undefined,
+        dateFrom: filters!.dateFrom,
+        dateTo: filters!.dateTo,
         page,
         pageSize,
+        lastKey: filters!.lastKey,
       });
-    } 
-    // Si solo se filtra por estado, usar endpoint específico
-    else if (filters?.status && filters.status !== 'all') {
+    } else if (filters?.status && filters.status !== 'all') {
+      endpointUsed = 'status';
+
       response = await notificationsApi.getByStatus(
         filters.status as 'pending' | 'validated' | 'rejected',
         page,
-        pageSize
+        pageSize,
+        filters.lastKey
       );
+    } else if (filters?.deviceId) {
+      endpointUsed = 'device';
+
+      response = await notificationsApi.getByDevice(
+        filters.deviceId,
+        page,
+        pageSize,
+        filters.lastKey
+      );
+    } else {
+      endpointUsed = 'getAll';
+
+      response = await notificationsApi.getAll(page, pageSize, filters?.lastKey);
     }
-    // Si solo se filtra por dispositivo, usar endpoint específico
-    else if (filters?.deviceId) {
-      response = await notificationsApi.getByDevice(filters.deviceId, page, pageSize);
-    }
-    // Si no hay filtros, obtener todas
-    else {
-      response = await notificationsApi.getAll(page, pageSize);
-    }
+
+    console.log('✅ getNotifications response:', {
+      endpointUsed,
+      recordsReceived: response.data.length,
+      pagination: response.pagination,
+      firstRecord: response.data[0],
+    });
 
     return {
       success: true,
@@ -83,7 +107,12 @@ export async function getNotifications(
       pagination: response.pagination,
     };
   } catch (error) {
-    console.error('Error fetching notifications:', error);
+    console.error('❌ getNotifications error:', {
+      error,
+      message: error instanceof Error ? error.message : 'Unknown',
+      stack: error instanceof Error ? error.stack : undefined,
+    });
+
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Error al cargar notificaciones',
@@ -93,24 +122,25 @@ export async function getNotifications(
         pageSize,
         total: 0,
         totalPages: 0,
+        hasMore: false,
       }
     };
   }
 }
 
-/**
- * Obtener una notificación específica por ID
- */
 export async function getNotificationById(id: string) {
+  console.log('🔍 SERVER ACTION: getNotificationById', { id });
+
   try {
     const notification = await notificationsApi.getById(id);
-    
+    console.log('✅ Notification found:', notification);
+
     return {
       success: true,
       data: notification,
     };
   } catch (error) {
-    console.error('Error fetching notification:', error);
+    console.error('❌ getNotificationById error:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Error al cargar notificación',

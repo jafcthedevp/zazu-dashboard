@@ -15,7 +15,6 @@ export default async function NotificationsPage({ searchParams }: PageProps) {
   
   const result = await getNotifications(page, pageSize);
 
-  // Server Action para logout
   async function handleLogout() {
     'use server';
     redirect('/login');

@@ -33,5 +33,7 @@ export interface PaginatedResponse<T> {
     pageSize: number;
     total: number;
     totalPages: number;
+    hasMore?: boolean;    // ← NUEVO: para cursor pagination
+    lastKey?: string;     // ← NUEVO: para siguiente página
   };
 }

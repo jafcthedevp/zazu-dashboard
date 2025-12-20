@@ -1,6 +1,7 @@
+// components/notifications-table.tsx
 "use client"
 
-import { useState, useMemo } from "react"
+import { useState, useMemo, useTransition } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import type { Notification, NotificationStatus } from "@/types/notifications"
 import { updateNotificationStatus } from "@/app/dashboard/action"
@@ -20,38 +21,60 @@ interface NotificationsTableProps {
     pageSize: number
     total: number
     totalPages: number
+    hasMore?: boolean
+    lastKey?: string
   }
+  initialFilters?: Record<string, string>
   onLogout: () => void
 }
 
 type FilterStatus = "all" | "pending" | "validated" | "rejected"
 
-const statusConfig: Record<NotificationStatus, { 
-  label: string; 
-  variant: "warning" | "success" | "destructive" 
+const statusConfig: Record<NotificationStatus, {
+  label: string;
+  variant: "warning" | "success" | "destructive"
 }> = {
   pending: { label: "Pendiente", variant: "warning" },
   validated: { label: "Validada", variant: "success" },
   rejected: { label: "Rechazada", variant: "destructive" },
 }
 
-export function NotificationsTable({ 
-  initialNotifications, 
+export function NotificationsTable({
+  initialNotifications,
   pagination,
-  onLogout 
+  initialFilters = {},
+  onLogout
 }: NotificationsTableProps) {
+  console.log('🎨 NotificationsTable render', {
+    notificationCount: initialNotifications.length,
+    pagination,
+    initialFilters,
+  })
+
   const router = useRouter()
   const searchParams = useSearchParams()
-  
+  const [isPending, startTransition] = useTransition()
+
   const [notifications, setNotifications] = useState<Notification[]>(
     Array.isArray(initialNotifications) ? initialNotifications : []
   )
   const [updatingIds, setUpdatingIds] = useState<Set<string>>(new Set())
-  const [activeFilter, setActiveFilter] = useState<FilterStatus>("all")
+  const [activeFilter, setActiveFilter] = useState<FilterStatus>(
+    (initialFilters.status as FilterStatus) || "all"
+  )
   const [searchQuery, setSearchQuery] = useState("")
-  const [advancedFilters, setAdvancedFilters] = useState<FilterValues>({})
 
-  // Filtrar notificaciones válidas
+  // Parsear filtros iniciales desde URL
+  const [advancedFilters, setAdvancedFilters] = useState<FilterValues>({
+    code: initialFilters.code,
+    deviceId: initialFilters.deviceId,
+    status: initialFilters.status,
+    amountMin: initialFilters.amountMin,
+    amountMax: initialFilters.amountMax,
+    dateFrom: initialFilters.dateFrom,
+    dateTo: initialFilters.dateTo,
+  })
+
   const validNotifications = useMemo(() => {
     return notifications.filter((n) => n && n.id)
   }, [notifications])
@@ -59,81 +82,19 @@ export function NotificationsTable({
   const filteredNotifications = useMemo(() => {
     let filtered = validNotifications
 
-    // Filtrar por estado
-    if (activeFilter !== "all") {
-      filtered = filtered.filter((n) => n.status === activeFilter)
-    }
-
-    // Filtrar por búsqueda rápida
     if (searchQuery.trim()) {
       const query = searchQuery.toLowerCase().trim()
       filtered = filtered.filter((n) => {
         const code = (n.code || "").toLowerCase()
         const device = (n.device_id || "").toLowerCase()
-        return code.includes(query) || device.includes(query)
-      })
-    }
-
-    // Aplicar filtros avanzados
-    if (advancedFilters.code) {
-      filtered = filtered.filter((n) =>
-        n.code?.toLowerCase().includes(advancedFilters.code!.toLowerCase())
-      )
-    }
-
-    if (advancedFilters.deviceId) {
-      filtered = filtered.filter((n) =>
-        n.device_id?.toLowerCase().includes(advancedFilters.deviceId!.toLowerCase())
-      )
-    }
-
-    if (advancedFilters.status && advancedFilters.status !== 'all') {
-      filtered = filtered.filter((n) => n.status === advancedFilters.status)
-    }
-
-    if (advancedFilters.amountMin) {
-      const min = parseFloat(advancedFilters.amountMin)
-      if (!isNaN(min)) {
-        filtered = filtered.filter((n) => {
-          const amount = typeof n.amount === 'string' ? parseFloat(n.amount) : n.amount
-          return amount && amount >= min
-        })
-      }
-    }
-
-    if (advancedFilters.amountMax) {
-      const max = parseFloat(advancedFilters.amountMax)
-      if (!isNaN(max)) {
-        filtered = filtered.filter((n) => {
-          const amount = typeof n.amount === 'string' ? parseFloat(n.amount) : n.amount
-          return amount && amount <= max
-        })
-      }
-    }
-
-    if (advancedFilters.dateFrom) {
-      const from = new Date(advancedFilters.dateFrom)
-      filtered = filtered.filter((n) => {
-        if (!n.timestamp) return false
-        const date = new Date(n.timestamp)
-        return date >= from
-      })
-    }
-
-    if (advancedFilters.dateTo) {
-      const to = new Date(advancedFilters.dateTo)
-      to.setHours(23, 59, 59, 999) // Incluir todo el día
-      filtered = filtered.filter((n) => {
-        if (!n.timestamp) return false
-        const date = new Date(n.timestamp)
-        return date <= to
+        const name = (n.name || "").toLowerCase()
+        return code.includes(query) || device.includes(query) || name.includes(query)
       })
     }
 
     return filtered
-  }, [validNotifications, activeFilter, searchQuery, advancedFilters])
+  }, [validNotifications, searchQuery])
 
-  // Contar notificaciones por estado
   const counts = useMemo(() => {
     return {
       pending: validNotifications.filter((n) => n.status === "pending").length,
@@ -143,14 +104,15 @@ export function NotificationsTable({
   }, [validNotifications])
 
   const handleStatusChange = async (id: string, newStatus: NotificationStatus) => {
+    console.log('🔄 Changing status', { id, newStatus })
     setUpdatingIds((prev) => new Set(prev).add(id))
 
     try {
       const result = await updateNotificationStatus(id, newStatus)
 
       if (result.success) {
-        setNotifications((prev) => 
-          prev.map((notif) => 
+        setNotifications((prev) =>
+          prev.map((notif) =>
             notif.id === id ? { ...notif, status: newStatus } : notif
           )
         )
@@ -175,23 +137,102 @@ export function NotificationsTable({
     }
   }
 
+  const updateFiltersInURL = (newFilters: FilterValues, newStatus?: FilterStatus) => {
+    console.log('🔄 Updating filters in URL', { newFilters, newStatus })
+
+    const params = new URLSearchParams(searchParams.toString())
+
+    params.set('page', '1')
+    params.delete('lastKey') 
+
+    if (newFilters.code) {
+      params.set('code', newFilters.code)
+    } else {
+      params.delete('code')
+    }
+
+    if (newFilters.deviceId) {
+      params.set('deviceId', newFilters.deviceId)
+    } else {
+      params.delete('deviceId')
+    }
+
+    const status = newStatus || newFilters.status
+    if (status && status !== 'all') {
+      params.set('status', status)
+    } else {
+      params.delete('status')
+    }
+
+    if (newFilters.amountMin) {
+      params.set('amountMin', newFilters.amountMin)
+    } else {
+      params.delete('amountMin')
+    }
+
+    if (newFilters.amountMax) {
+      params.set('amountMax', newFilters.amountMax)
+    } else {
+      params.delete('amountMax')
+    }
+
+    if (newFilters.dateFrom) {
+      params.set('dateFrom', newFilters.dateFrom)
+    } else {
+      params.delete('dateFrom')
+    }
+
+    if (newFilters.dateTo) {
+      params.set('dateTo', newFilters.dateTo)
+    } else {
+      params.delete('dateTo')
+    }
+
+    const newURL = `/dashboard?${params.toString()}`
+
+    startTransition(() => {
+      router.push(newURL)
+    })
+  }
+
+  const handleFilterChange = (status: FilterStatus) => {
+    console.log('🏷️ Filter changed to:', status)
+    setActiveFilter(status)
+    updateFiltersInURL(advancedFilters, status)
+  }
+
   const handlePageChange = (newPage: number) => {
+    console.log('📄 Page changed to:', newPage)
     const params = new URLSearchParams(searchParams.toString())
     params.set('page', newPage.toString())
-    router.push(`/dashboard?${params.toString()}`)
+
+    // Si hay lastKey y vamos a la siguiente página, incluirlo
+    if (pagination.hasMore && newPage > pagination.page && pagination.lastKey) {
+      params.set('lastKey', pagination.lastKey)
+    } else if (newPage < pagination.page) {
+      // Si retrocedemos, quitamos el lastKey
+      params.delete('lastKey')
+    }
+
+    startTransition(() => {
+      router.push(`/dashboard?${params.toString()}`)
+    })
   }
 
   const handleAdvancedFilters = (filters: FilterValues) => {
+    console.log('🔍 Advanced filters applied:', filters)
     setAdvancedFilters(filters)
+    updateFiltersInURL(filters, activeFilter)
+
     toast.success("Filtros aplicados", {
-      description: "Los filtros se han aplicado correctamente",
+      description: "Buscando en el servidor...",
     })
   }
 
   return (
     <div className="flex flex-col min-h-screen bg-background">
       <NotificationsNavbar
-        onFilterChange={setActiveFilter}
+        onFilterChange={handleFilterChange}
         activeFilter={activeFilter}
         counts={counts}
         onLogout={onLogout}
@@ -203,6 +244,14 @@ export function NotificationsTable({
 
       <div className="flex-1">
         <div className="container mx-auto px-4 py-6 max-w-7xl">
+          {/* Indicador de carga */}
+          {isPending && (
+            <div className="mb-4 flex items-center justify-center gap-2 text-sm text-muted-foreground">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              Cargando resultados desde el servidor...
+            </div>
+          )}
+
           <div className="rounded-lg border shadow-sm bg-card">
             <Table>
               <TableHeader>
@@ -220,7 +269,9 @@ export function NotificationsTable({
                 {filteredNotifications.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
-                      No se encontraron notificaciones con los filtros aplicados
+                      {isPending
+                        ? "Cargando notificaciones..."
+                        : "No se encontraron notificaciones"}
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -228,7 +279,13 @@ export function NotificationsTable({
                     const isUpdating = updatingIds.has(notification.id)
                     const config = statusConfig[notification.status] || statusConfig.pending
                     const date = notification.timestamp
-                      ? new Date(notification.timestamp).toLocaleString("es-ES")
+                      ? new Date(notification.timestamp).toLocaleString("es-ES", {
+                          year: 'numeric',
+                          month: '2-digit',
+                          day: '2-digit',
+                          hour: '2-digit',
+                          minute: '2-digit'
+                        })
                       : "-"
 
                     const key = notification.id || `notification-${index}`
@@ -238,8 +295,15 @@ export function NotificationsTable({
                         <TableCell className="font-medium truncate">
                           {notification.code || "-"}
                         </TableCell>
-                        <TableCell className="truncate">{notification.name}</TableCell>
-                        <TableCell className="truncate">{notification.amount || "-"}</TableCell>
+                        <TableCell className="truncate">{notification.name || "-"}</TableCell>
+                        <TableCell className="truncate">
+                          {notification.amount
+                            ? `S/ ${typeof notification.amount === 'number'
+                                ? notification.amount.toFixed(2)
+                                : notification.amount}`
+                            : "-"
+                          }
+                        </TableCell>
                         <TableCell className="truncate text-sm text-muted-foreground">
                           {notification.device_id || "-"}
                         </TableCell>
@@ -252,7 +316,7 @@ export function NotificationsTable({
                         <TableCell className="text-right">
                           <Select
                             value={notification.status}
-                            onValueChange={(value) => 
+                            onValueChange={(value) =>
                               handleStatusChange(notification.id, value as NotificationStatus)
                             }
                             disabled={isUpdating}
@@ -282,28 +346,34 @@ export function NotificationsTable({
             <div className="flex items-center justify-between px-4 py-4 border-t">
               <div className="text-sm text-muted-foreground">
                 Mostrando {filteredNotifications.length} de {pagination.total} notificaciones
+                {Object.keys(advancedFilters).filter(k => advancedFilters[k as keyof FilterValues]).length > 0 && (
+                  <span className="ml-2 text-primary">
+                    (con filtros)
+                  </span>
+                )}
               </div>
-              
+
               <div className="flex items-center gap-2">
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handlePageChange(pagination.page - 1)}
-                  disabled={pagination.page <= 1}
+                  disabled={pagination.page <= 1 || isPending}
                 >
                   <ChevronLeft className="h-4 w-4" />
                   Anterior
                 </Button>
-                
+
                 <div className="text-sm">
-                  Página {pagination.page} de {pagination.totalPages}
+                  Página {pagination.page}
+                  {pagination.hasMore && " de muchas"}
                 </div>
-                
+
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={() => handlePageChange(pagination.page + 1)}
-                  disabled={pagination.page >= pagination.totalPages}
+                  disabled={!pagination.hasMore || isPending}
                 >
                   Siguiente
                   <ChevronRight className="h-4 w-4" />

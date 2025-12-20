@@ -19,7 +19,6 @@ import { createClient } from '@/lib/supabase/server'
 export const verifySession = cache(async () => {
   const supabase = await createClient()
 
-  // Usar getUser() que valida el JWT en el servidor
   const {
     data: { user },
   } = await supabase.auth.getUser()
@@ -31,10 +30,6 @@ export const verifySession = cache(async () => {
   return { user }
 })
 
-/**
- * Obtener datos del usuario (sin redirección)
- * Útil para casos donde necesitas verificar auth opcionalmente
- */
 export const getOptionalUser = cache(async () => {
   const supabase = await createClient()
 
