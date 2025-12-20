@@ -1,33 +1,27 @@
-'use client';
+"use client"
 
-import { LogOut, Search } from 'lucide-react';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { Badge } from '@/components/ui/badge';
-import { logout } from '@/app/login/action';
-import { NotificationsFilters, type FilterValues } from '@/components/notifications-filters';
+import { LogOut, Search } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { Badge } from "@/components/ui/badge"
+import { NotificationsFilters, type FilterValues } from "@/components/notifications-filters"
 
-type FilterStatus = 'all' | 'pending' | 'validated' | 'rejected';
+type FilterStatus = "all" | "pending" | "validated" | "rejected"
 
 interface NotificationsNavbarProps {
-  onFilterChange: (status: FilterStatus) => void;
-  activeFilter: FilterStatus;
+  onFilterChange: (status: FilterStatus) => void
+  activeFilter: FilterStatus
   counts: {
-    pending: number;
-    validated: number;
-    rejected: number;
-  };
-  onLogout: () => void;
-  searchQuery: string;
-  onSearchChange: (query: string) => void;
-  onAdvancedFilters: (filters: FilterValues) => void;
-  advancedFilters: FilterValues;
+    pending: number
+    validated: number
+    rejected: number
+  }
+  onLogout: () => void
+  searchQuery: string
+  onSearchChange: (query: string) => void
+  onAdvancedFilters: (filters: FilterValues) => void
+  advancedFilters: FilterValues
 }
 
 export function NotificationsNavbar({
@@ -40,10 +34,6 @@ export function NotificationsNavbar({
   onAdvancedFilters,
   advancedFilters,
 }: NotificationsNavbarProps) {
-  const handleLogout = async () => {
-    await logout();
-  };
-
   return (
     <div className="border-b bg-background">
       <div className="container mx-auto px-4 py-4 max-w-7xl">
@@ -54,17 +44,17 @@ export function NotificationsNavbar({
 
           <nav className="flex items-center gap-1">
             <Button
-              variant={activeFilter === 'all' ? 'default' : 'ghost'}
+              variant={activeFilter === "all" ? "default" : "ghost"}
               size="sm"
-              onClick={() => onFilterChange('all')}
+              onClick={() => onFilterChange("all")}
             >
               Todas
             </Button>
 
             <Button
-              variant={activeFilter === 'pending' ? 'default' : 'ghost'}
+              variant={activeFilter === "pending" ? "default" : "ghost"}
               size="sm"
-              onClick={() => onFilterChange('pending')}
+              onClick={() => onFilterChange("pending")}
               className="gap-2"
             >
               Pendientes
@@ -76,9 +66,9 @@ export function NotificationsNavbar({
             </Button>
 
             <Button
-              variant={activeFilter === 'validated' ? 'default' : 'ghost'}
+              variant={activeFilter === "validated" ? "default" : "ghost"}
               size="sm"
-              onClick={() => onFilterChange('validated')}
+              onClick={() => onFilterChange("validated")}
               className="gap-2"
             >
               Validadas
@@ -90,9 +80,9 @@ export function NotificationsNavbar({
             </Button>
 
             <Button
-              variant={activeFilter === 'rejected' ? 'default' : 'ghost'}
+              variant={activeFilter === "rejected" ? "default" : "ghost"}
               size="sm"
-              onClick={() => onFilterChange('rejected')}
+              onClick={() => onFilterChange("rejected")}
               className="gap-2"
             >
               Rechazadas
@@ -111,7 +101,7 @@ export function NotificationsNavbar({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onClick={handleLogout} className="text-destructive">
+              <DropdownMenuItem onClick={onLogout} className="text-destructive">
                 <LogOut className="mr-2 h-4 w-4" />
                 Cerrar sesión
               </DropdownMenuItem>
@@ -130,14 +120,10 @@ export function NotificationsNavbar({
               className="pl-9"
             />
           </div>
-          
-          {/* NUEVO: Botón de filtros avanzados */}
-          <NotificationsFilters
-            onApplyFilters={onAdvancedFilters}
-            activeFilters={advancedFilters}
-          />
+
+          <NotificationsFilters onApplyFilters={onAdvancedFilters} activeFilters={advancedFilters} />
         </div>
       </div>
     </div>
-  );
+  )
 }

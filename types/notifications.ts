@@ -1,39 +1,38 @@
-import { z } from 'zod';
+import { z } from "zod"
 
-export const NotificationStatusSchema = z.enum(['pending', 'validated', 'rejected']);
-export type NotificationStatus = z.infer<typeof NotificationStatusSchema>;
+// Estados posibles de una notificación
+export const NotificationStatusEnum = z.enum(["pending", "validated", "rejected"])
+export type NotificationStatus = z.infer<typeof NotificationStatusEnum>
 
-export const NotificationSchema = z.object({
-  id: z.string(),
-  // Campos reales devueltos por la API
-  code: z.string(),
-  name: z.string(),
-  status: NotificationStatusSchema,
-  // Puede venir como number (timestamp) o string — lo normalizamos a number
-  timestamp: z.preprocess((val) => {
-    if (typeof val === 'string') return Number(val);
-    return val;
-  }, z.number()),
-  amount: z.number().optional(),
-  device_id: z.string().optional(),
-});
-
-export type Notification = z.infer<typeof NotificationSchema>;
-
+// Schema para actualizar estado
 export const UpdateStatusSchema = z.object({
-  status: NotificationStatusSchema,
-});
+  status: NotificationStatusEnum,
+})
 
-export type UpdateStatusPayload = z.infer<typeof UpdateStatusSchema>;
+export type UpdateStatusPayload = z.infer<typeof UpdateStatusSchema>
 
+export interface Notification {
+  id: string
+  code: string
+  name: string
+  status: NotificationStatus
+  timestamp: number // timestamp en milisegundos
+  amount?: number
+  device_id?: string
+}
+
+// Paginación
+export interface PaginationInfo {
+  page: number
+  pageSize: number
+  total: number
+  totalPages: number
+  hasMore: boolean
+  lastKey?: string
+}
+
+// Respuesta paginada
 export interface PaginatedResponse<T> {
-  data: T[];
-  pagination: {
-    page: number;
-    pageSize: number;
-    total: number;
-    totalPages: number;
-    hasMore?: boolean;    // ← NUEVO: para cursor pagination
-    lastKey?: string;     // ← NUEVO: para siguiente página
-  };
+  data: T[]
+  pagination: PaginationInfo
 }

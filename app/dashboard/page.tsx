@@ -1,23 +1,61 @@
-import { getNotifications } from '@/app/dashboard/action';
-import { NotificationsTable } from '@/components/notifications-table';
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle } from 'lucide-react';
-import { redirect } from 'next/navigation';
+import { getNotifications } from "@/app/dashboard/action"
+import { NotificationsTable } from "@/components/notifications-table"
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { AlertCircle } from "lucide-react"
+import { redirect } from "next/navigation"
 
 interface PageProps {
-  searchParams: Promise<{ page?: string; pageSize?: string }>;
+  searchParams: Promise<{
+    page?: string
+    pageSize?: string
+    status?: string
+    code?: string
+    deviceId?: string
+    amountMin?: string
+    amountMax?: string
+    dateFrom?: string
+    dateTo?: string
+    lastKey?: string
+  }>
 }
 
 export default async function NotificationsPage({ searchParams }: PageProps) {
-  const params = await searchParams;
-  const page = Number(params.page) || 1;
-  const pageSize = Number(params.pageSize) || 20;
-  
-  const result = await getNotifications(page, pageSize);
+  const params = await searchParams
+
+  console.log("[v0] Raw searchParams:", params)
+  console.log("[v0] Status filter from URL:", params.status)
+
+  const page = Number(params.page) || 1
+  const pageSize = Number(params.pageSize) || 20
+
+  const currentFilters = {
+    status: params.status,
+    code: params.code,
+    deviceId: params.deviceId,
+    amountMin: params.amountMin,
+    amountMax: params.amountMax,
+    dateFrom: params.dateFrom,
+    dateTo: params.dateTo,
+    lastKey: params.lastKey,
+  }
+
+  console.log("[v0] Filters being sent to getNotifications:", currentFilters)
+
+  const result = await getNotifications(page, pageSize, currentFilters)
+
+  console.log("[v0] Result from API - success:", result.success)
+  console.log("[v0] Result notifications count:", result.data?.length)
+  if (result.data && result.data.length > 0) {
+    console.log("[v0] First notification status:", result.data[0].status)
+    console.log(
+      "[v0] All statuses:",
+      result.data.map((n) => n.status),
+    )
+  }
 
   async function handleLogout() {
-    'use server';
-    redirect('/login');
+    "use server"
+    redirect("/login")
   }
 
   if (!result.success) {
@@ -29,20 +67,20 @@ export default async function NotificationsPage({ searchParams }: PageProps) {
           <AlertDescription>{result.error}</AlertDescription>
         </Alert>
       </div>
-    );
+    )
   }
 
-  // Normalización de datos
   const cleanNotifications = (result.data || []).map((n) => ({
     ...n,
     id: n.id || n.code || `temp-${Math.random()}`,
-  }));
+  }))
 
   return (
-    <NotificationsTable 
+    <NotificationsTable
       initialNotifications={cleanNotifications}
-      pagination={result.pagination}
-      onLogout={handleLogout} 
+      pagination={result.pagination!}
+      initialFilters={params as Record<string, string>}
+      onLogout={handleLogout}
     />
-  );
+  )
 }
