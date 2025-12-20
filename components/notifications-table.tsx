@@ -103,10 +103,17 @@ export function NotificationsTable({
   }
 
   const handleAdvancedFilters = (filters: FilterValues) => {
-    updateUrlParams({
-      ...filters,
-      status: activeFilter === "all" ? undefined : activeFilter,
-    })
+    const isClearing = Object.keys(filters).length === 0
+
+    if (isClearing) {
+      // Limpiar todos los parámetros de la URL
+      router.push("/dashboard")
+    } else {
+      updateUrlParams({
+        ...filters,
+        status: activeFilter === "all" ? undefined : activeFilter,
+      })
+    }
   }
 
   const handleStatusUpdate = async (id: string, newStatus: NotificationStatus) => {
@@ -146,7 +153,7 @@ export function NotificationsTable({
     if (amount === undefined) return "-"
     return new Intl.NumberFormat("es-ES", {
       style: "currency",
-      currency: "PEN",
+      currency: "USD",
     }).format(amount)
   }
 
