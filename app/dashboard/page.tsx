@@ -3,6 +3,7 @@ import { NotificationsTable } from "@/components/notifications-table"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 import { redirect } from "next/navigation"
+import { logout } from "../login/action"
 
 interface PageProps {
   searchParams: Promise<{
@@ -55,7 +56,7 @@ export default async function NotificationsPage({ searchParams }: PageProps) {
 
   async function handleLogout() {
     "use server"
-    redirect("/login")
+    await logout();
   }
 
   if (!result.success) {

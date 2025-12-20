@@ -49,17 +49,6 @@ export async function login(
     }
   }
 
-  // Verificar que el usuario tenga perfil y esté activo
-  const { data: { user } } = await supabase.auth.getUser()
-
-  if (!user) {
-    await supabase.auth.signOut()
-    return {
-      error: 'Error al obtener información del usuario.',
-    }
-  }
-
-  // Login exitoso, redirigir al dashboard
   redirect('/dashboard')
 }
 
