@@ -19,8 +19,16 @@ apiClient.interceptors.request.use(
       url: config.url,
       fullURL: `${config.baseURL}${config.url}`,
       params: config.params,
+      paramsSerializer: config.paramsSerializer,
       data: config.data,
     });
+
+    // Log lastKey específicamente para debugging
+    if (config.params?.last_key) {
+      console.log('🔑 LAST_KEY:', config.params.last_key);
+      console.log('🔑 LAST_KEY TYPE:', typeof config.params.last_key);
+    }
+
     return config;
   },
   (error) => {

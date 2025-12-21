@@ -166,21 +166,18 @@ export function NotificationsTable({
   };
 
   const formatDate = (timestamp: number) => {
-    return new Date(timestamp).toLocaleDateString("es-ES", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    })
+    const date = new Date(timestamp);
+    const day = String(date.getDate()).padStart(2, '0');
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const year = date.getFullYear();
+    const hours = String(date.getHours()).padStart(2, '0');
+    const minutes = String(date.getMinutes()).padStart(2, '0');
+    return `${day}/${month}/${year}, ${hours}:${minutes}`;
   }
 
   const formatAmount = (amount?: number) => {
     if (amount === undefined) return "-"
-    return new Intl.NumberFormat("es-ES", {
-      style: "currency",
-      currency: "PEN",
-    }).format(amount)
+    return `S/ ${amount.toFixed(2)}`
   }
 
   return (
