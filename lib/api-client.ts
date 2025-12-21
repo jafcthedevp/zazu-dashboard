@@ -50,13 +50,19 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
-    console.error('❌ API ERROR:', {
-      status: error.response?.status,
-      statusText: error.response?.statusText,
-      url: error.config?.url,
-      message: error.message,
-      data: error.response?.data,
-    });
+    // Mejorar logging de errores
+    const errorInfo = {
+      message: error?.message || 'Unknown error',
+      status: error?.response?.status,
+      statusText: error?.response?.statusText,
+      url: error?.config?.url,
+      data: error?.response?.data,
+      fullError: error,
+    };
+
+    console.error('❌ API ERROR:', errorInfo);
+    console.error('❌ FULL ERROR OBJECT:', error);
+
     return Promise.reject(error);
   }
 );
@@ -74,6 +80,28 @@ interface ApiParams {
   to_timestamp?: number;
 }
 
+// Función para normalizar lastKey (convertir floats a integers)
+function normalizeLastKey(lastKeyString?: string): string | undefined {
+  if (!lastKeyString) return undefined;
+
+  try {
+    const parsed = JSON.parse(lastKeyString);
+
+    // Convertir timestamp de float a integer si existe
+    if (parsed.timestamp && typeof parsed.timestamp === 'number') {
+      parsed.timestamp = Math.floor(parsed.timestamp);
+    }
+
+    const normalized = JSON.stringify(parsed);
+    console.log('🔧 NORMALIZED LAST_KEY:', { original: lastKeyString, normalized });
+    return normalized;
+  } catch {
+    // Si no se puede parsear, devolver tal cual
+    console.log('⚠️ Could not parse lastKey:', lastKeyString);
+    return lastKeyString;
+  }
+}
+
 export const notificationsApi = {
   getAll: async (
     page: number = 1,
@@ -87,7 +115,7 @@ export const notificationsApi = {
     };
 
     if (lastKey) {
-      params.last_key = lastKey;
+      params.last_key = normalizeLastKey(lastKey);
     }
 
     const { data } = await apiClient.get('/notifications', { params });
@@ -154,7 +182,7 @@ export const notificationsApi = {
     };
 
     if (lastKey) {
-      params.last_key = lastKey;
+      params.last_key = normalizeLastKey(lastKey);
     }
 
     const { data } = await apiClient.get(`/notifications/status/${status}`, { params });
@@ -193,7 +221,7 @@ export const notificationsApi = {
     };
 
     if (lastKey) {
-      params.last_key = lastKey;
+      params.last_key = normalizeLastKey(lastKey);
     }
 
     const { data } = await apiClient.get(`/notifications/device/${deviceId}`, { params });
@@ -246,7 +274,7 @@ export const notificationsApi = {
     if (params.name) searchParams.name = params.name;
     if (params.amountMin) searchParams.min_amount = params.amountMin;
     if (params.amountMax) searchParams.max_amount = params.amountMax;
-    if (params.lastKey) searchParams.last_key = params.lastKey;
+    if (params.lastKey) searchParams.last_key = normalizeLastKey(params.lastKey);
 
     // Convertir fechas a timestamps (milisegundos)
     if (params.dateFrom) {
