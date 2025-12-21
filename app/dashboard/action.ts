@@ -25,6 +25,7 @@ export async function getNotifications(
     code?: string
     deviceId?: string
     status?: string
+    name?: string
     amountMin?: string
     amountMax?: string
     dateFrom?: string
@@ -36,13 +37,14 @@ export async function getNotifications(
     let response
 
     const hasComplexFilters =
-      filters && (filters.code || filters.amountMin || filters.amountMax || filters.dateFrom || filters.dateTo)
+      filters && (filters.code || filters.name || filters.amountMin || filters.amountMax || filters.dateFrom || filters.dateTo)
 
     if (hasComplexFilters) {
       response = await notificationsApi.search({
         code: filters!.code,
         deviceId: filters!.deviceId,
         status: filters!.status,
+        name: filters!.name,
         amountMin: filters!.amountMin ? Number.parseFloat(filters!.amountMin) : undefined,
         amountMax: filters!.amountMax ? Number.parseFloat(filters!.amountMax) : undefined,
         dateFrom: filters!.dateFrom,

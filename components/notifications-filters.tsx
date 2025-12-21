@@ -10,6 +10,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 export interface FilterValues {
   code?: string
   deviceId?: string
+  name?: string
   amountMin?: string
   amountMax?: string
   dateFrom?: string
@@ -76,6 +77,16 @@ export function NotificationsFilters({ onApplyFilters, activeFilters }: Notifica
                 placeholder="Buscar por dispositivo..."
                 value={filters.deviceId || ""}
                 onChange={(e) => setFilters({ ...filters, deviceId: e.target.value })}
+              />
+            </div>
+
+            <div className="grid gap-2">
+              <Label htmlFor="name">Nombre</Label>
+              <Input
+                id="name"
+                placeholder="Buscar por nombre..."
+                value={filters.name || ""}
+                onChange={(e) => setFilters({ ...filters, name: e.target.value })}
               />
             </div>
 

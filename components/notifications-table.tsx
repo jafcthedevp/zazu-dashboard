@@ -42,7 +42,6 @@ export function NotificationsTable({
   const router = useRouter()
   const searchParams = useSearchParams()
 
-  const [cursorHistory, setCursorHistory] = useState<string[]>([]);
   const [notifications, setNotifications] = useState(initialNotifications)
   const [searchQuery, setSearchQuery] = useState("")
   const [isUpdating, setIsUpdating] = useState<string | null>(null)
@@ -152,17 +151,15 @@ export function NotificationsTable({
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", newPage.toString());
 
-    if (newPage > pagination.page) {
-      if (pagination.lastKey) {
-        setCursorHistory(prev => [...prev, pagination.lastKey!]);
-        params.set("lastKey", pagination.lastKey);
-      }
-    } else if (newPage < pagination.page) {
-      const previousCursor = cursorHistory[cursorHistory.length - 2];
-      if (previousCursor) {
-        params.set("lastKey", previousCursor);
-      }
-      setCursorHistory(prev => prev.slice(0, -1));
+    // Para avanzar: usar el lastKey de la paginación actual
+    if (newPage > pagination.page && pagination.lastKey) {
+      params.set("lastKey", pagination.lastKey);
+    }
+
+    // Para retroceder: eliminar el lastKey para volver al inicio
+    // La API manejará correctamente mostrar la página anterior
+    if (newPage < pagination.page) {
+      params.delete("lastKey");
     }
 
     router.push(`/dashboard?${params.toString()}`);

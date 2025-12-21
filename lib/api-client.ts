@@ -59,6 +59,7 @@ interface ApiParams {
   code?: string;
   device_id?: string;
   status?: string;
+  name?: string;
   min_amount?: number;
   max_amount?: number;
   from_timestamp?: number;
@@ -215,6 +216,7 @@ export const notificationsApi = {
     code?: string;
     deviceId?: string;
     status?: string;
+    name?: string;
     amountMin?: number;
     amountMax?: number;
     dateFrom?: string;
@@ -233,9 +235,23 @@ export const notificationsApi = {
     if (params.code) searchParams.code = params.code;
     if (params.deviceId) searchParams.device_id = params.deviceId;
     if (params.status && params.status !== 'all') searchParams.status = params.status;
+    if (params.name) searchParams.name = params.name;
     if (params.amountMin) searchParams.min_amount = params.amountMin;
     if (params.amountMax) searchParams.max_amount = params.amountMax;
     if (params.lastKey) searchParams.last_key = params.lastKey;
+
+    // Convertir fechas a timestamps (milisegundos)
+    if (params.dateFrom) {
+      const fromDate = new Date(params.dateFrom);
+      fromDate.setHours(0, 0, 0, 0);
+      searchParams.from_timestamp = fromDate.getTime();
+    }
+
+    if (params.dateTo) {
+      const toDate = new Date(params.dateTo);
+      toDate.setHours(23, 59, 59, 999);
+      searchParams.to_timestamp = toDate.getTime();
+    }
 
     console.log('🔎 search() formatted params:', searchParams);
 

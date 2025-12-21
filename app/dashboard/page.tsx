@@ -11,6 +11,7 @@ interface PageProps {
     status?: string
     code?: string
     deviceId?: string
+    name?: string
     amountMin?: string
     amountMax?: string
     dateFrom?: string
@@ -32,6 +33,7 @@ export default async function NotificationsPage({ searchParams }: PageProps) {
     status: params.status,
     code: params.code,
     deviceId: params.deviceId,
+    name: params.name,
     amountMin: params.amountMin,
     amountMax: params.amountMax,
     dateFrom: params.dateFrom,
