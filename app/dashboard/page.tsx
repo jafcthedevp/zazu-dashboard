@@ -2,7 +2,6 @@ import { getNotifications } from "@/app/dashboard/action"
 import { NotificationsTable } from "@/components/notifications-table"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
-import { redirect } from "next/navigation"
 import { logout } from "../login/action"
 
 interface PageProps {

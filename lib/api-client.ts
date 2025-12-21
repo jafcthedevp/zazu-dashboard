@@ -53,13 +53,16 @@ apiClient.interceptors.response.use(
   }
 );
 
-function parseLastKey(lastKeyString?: string): any {
-  if (!lastKeyString) return undefined;
-  try {
-    return JSON.parse(lastKeyString);
-  } catch {
-    return undefined;
-  }
+interface ApiParams {
+  limit?: number;
+  last_key?: string;
+  code?: string;
+  device_id?: string;
+  status?: string;
+  min_amount?: number;
+  max_amount?: number;
+  from_timestamp?: number;
+  to_timestamp?: number;
 }
 
 export const notificationsApi = {
@@ -70,7 +73,7 @@ export const notificationsApi = {
   ): Promise<PaginatedResponse<Notification>> => {
     console.log('📋 getAll() called:', { page, pageSize, lastKey });
 
-    const params: any = {
+    const params: ApiParams = {
       limit: pageSize,
     };
 
@@ -137,7 +140,7 @@ export const notificationsApi = {
   ): Promise<PaginatedResponse<Notification>> => {
     console.log('🏷️ getByStatus() called:', { status, page, pageSize, lastKey });
 
-    const params: any = {
+    const params: ApiParams = {
       limit: pageSize,
     };
 
@@ -176,7 +179,7 @@ export const notificationsApi = {
   ): Promise<PaginatedResponse<Notification>> => {
     console.log('📱 getByDevice() called:', { deviceId, page, pageSize, lastKey });
 
-    const params: any = {
+    const params: ApiParams = {
       limit: pageSize,
     };
 
@@ -222,33 +225,7 @@ export const notificationsApi = {
   }): Promise<PaginatedResponse<Notification>> => {
     console.log('🔎 search() called with params:', params);
 
-    let fromTimestamp: number | undefined;
-    let toTimestamp: number | undefined;
-
-    const parseDateToTimestamp = (dateStr: string, endOfDay = false): number | undefined => {
-      try {
-        const date = new Date(dateStr);
-
-        if (isNaN(date.getTime())) {
-          console.warn(`Invalid date: ${dateStr}`);
-          return undefined;
-        }
-
-        if (endOfDay) {
-          date.setHours(23, 59, 59, 999);
-        } else {
-          date.setHours(0, 0, 0, 0);
-        }
-
-        return date.getTime();
-      } catch (error) {
-        console.error(`Error parsing date ${dateStr}:`, error);
-        return undefined;
-      }
-    };
-
-    // Usar en search:
-    const searchParams: any = {
+    const searchParams: ApiParams = {
       limit: params.pageSize || DEFAULT_PAGE_SIZE,
     };
 
@@ -258,8 +235,6 @@ export const notificationsApi = {
     if (params.status && params.status !== 'all') searchParams.status = params.status;
     if (params.amountMin) searchParams.min_amount = params.amountMin;
     if (params.amountMax) searchParams.max_amount = params.amountMax;
-    if (fromTimestamp) searchParams.from_timestamp = fromTimestamp;
-    if (toTimestamp) searchParams.to_timestamp = toTimestamp;
     if (params.lastKey) searchParams.last_key = params.lastKey;
 
     console.log('🔎 search() formatted params:', searchParams);

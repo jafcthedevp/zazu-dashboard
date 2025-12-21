@@ -54,6 +54,8 @@ export function NotificationsTable({
     }, 300);
 
     setNotifications(initialNotifications)
+
+    return () => clearTimeout(timer);
   }, [initialNotifications, searchQuery])
 
   const activeFilter = (initialFilters.status as FilterStatus) || "all"
