@@ -71,9 +71,9 @@ export default async function NotificationsPage({ searchParams }: PageProps) {
     )
   }
 
-  const cleanNotifications = (result.data || []).map((n) => ({
+  const cleanNotifications = (result.data || []).map((n, index) => ({
     ...n,
-    id: n.id || n.code || `temp-${Math.random()}`,
+    id: n.id || n.code || `temp-${index}`,
   }))
 
   return (
