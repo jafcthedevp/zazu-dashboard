@@ -70,7 +70,7 @@ export function NotificationsFilters({ onApplyFilters, activeFilters }: Notifica
               />
             </div>
 
-            <div className="grid gap-2">
+            {/* <div className="grid gap-2">
               <Label htmlFor="deviceId">ID de Dispositivo</Label>
               <Input
                 id="deviceId"
@@ -78,9 +78,9 @@ export function NotificationsFilters({ onApplyFilters, activeFilters }: Notifica
                 value={filters.deviceId || ""}
                 onChange={(e) => setFilters({ ...filters, deviceId: e.target.value })}
               />
-            </div>
+            </div> */}
 
-            <div className="grid gap-2">
+            {/* <div className="grid gap-2">
               <Label htmlFor="name">Nombre</Label>
               <Input
                 id="name"
@@ -88,7 +88,7 @@ export function NotificationsFilters({ onApplyFilters, activeFilters }: Notifica
                 value={filters.name || ""}
                 onChange={(e) => setFilters({ ...filters, name: e.target.value })}
               />
-            </div>
+            </div> */}
 
             <div className="grid grid-cols-2 gap-2">
               <div className="grid gap-2">

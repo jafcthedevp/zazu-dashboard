@@ -4,12 +4,13 @@ import type React from "react"
 
 import { useState, useMemo, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
-import { Check, X, Clock, MoreHorizontal, ChevronLeft, ChevronRight } from "lucide-react"
+import { Check, X, Clock } from "lucide-react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { NotificationsNavbar } from "@/components/notifications-navbar"
+import { NotificationRow } from "@/components/notification-row"
+import { NotificationsTablePagination } from "@/components/notifications-table-pagination"
 import type { FilterValues } from "@/components/notifications-filters"
 import { updateNotificationStatus } from "@/app/dashboard/action"
 import type { Notification, NotificationStatus, PaginationInfo } from "@/types/notifications"
@@ -151,34 +152,16 @@ export function NotificationsTable({
     const params = new URLSearchParams(searchParams.toString());
     params.set("page", newPage.toString());
 
-    // Para avanzar: usar el lastKey de la paginación actual
     if (newPage > pagination.page && pagination.lastKey) {
       params.set("lastKey", pagination.lastKey);
     }
 
-    // Para retroceder: eliminar el lastKey para volver al inicio
-    // La API manejará correctamente mostrar la página anterior
     if (newPage < pagination.page) {
       params.delete("lastKey");
     }
 
     router.push(`/dashboard?${params.toString()}`);
   };
-
-  const formatDate = (timestamp: number) => {
-    const date = new Date(timestamp);
-    const day = String(date.getDate()).padStart(2, '0');
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const year = date.getFullYear();
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${day}/${month}/${year}, ${hours}:${minutes}`;
-  }
-
-  const formatAmount = (amount?: number) => {
-    if (amount === undefined) return "-"
-    return `S/ ${amount.toFixed(2)}`
-  }
 
   return (
     <div className="min-h-screen bg-muted/30">
@@ -234,92 +217,24 @@ export function NotificationsTable({
                   </TableCell>
                 </TableRow>
               ) : (
-                filteredNotifications.map((notification) => {
-                  const config = statusConfig[notification.status]
-                  return (
-                    <TableRow key={notification.id}>
-                      <TableCell className="font-mono text-sm">{notification.code}</TableCell>
-                      <TableCell>{notification.name}</TableCell>
-                      <TableCell className="font-mono text-sm text-muted-foreground">
-                        {notification.device_id || "-"}
-                      </TableCell>
-                      <TableCell className="font-medium">{formatAmount(notification.amount)}</TableCell>
-                      <TableCell>
-                        <Badge variant={config.variant} className="gap-1">
-                          {config.icon}
-                          {config.label}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-muted-foreground">{formatDate(notification.timestamp)}</TableCell>
-                      <TableCell>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-8 w-8"
-                              disabled={isUpdating === notification.id}
-                            >
-                              <MoreHorizontal className="h-4 w-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            {notification.status !== "validated" && (
-                              <DropdownMenuItem onClick={() => handleStatusUpdate(notification.id, "validated")}>
-                                <Check className="mr-2 h-4 w-4 text-green-500" />
-                                Validar
-                              </DropdownMenuItem>
-                            )}
-                            {notification.status !== "rejected" && (
-                              <DropdownMenuItem onClick={() => handleStatusUpdate(notification.id, "rejected")}>
-                                <X className="mr-2 h-4 w-4 text-red-500" />
-                                Rechazar
-                              </DropdownMenuItem>
-                            )}
-                            {notification.status !== "pending" && (
-                              <DropdownMenuItem onClick={() => handleStatusUpdate(notification.id, "pending")}>
-                                <Clock className="mr-2 h-4 w-4 text-yellow-500" />
-                                Marcar pendiente
-                              </DropdownMenuItem>
-                            )}
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })
+                filteredNotifications.map((notification) => (
+                  <NotificationRow
+                    key={notification.id}
+                    notification={notification}
+                    isUpdating={isUpdating === notification.id}
+                    onStatusUpdate={handleStatusUpdate}
+                  />
+                ))
               )}
             </TableBody>
           </Table>
         </div>
 
-        <div className="mt-4 flex items-center justify-between">
-          <p className="text-sm text-muted-foreground">
-            Mostrando {filteredNotifications.length} resultados
-            {pagination.hasMore && " (hay más disponibles)"}
-          </p>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(pagination.page - 1)}
-              disabled={pagination.page <= 1}
-            >
-              <ChevronLeft className="h-4 w-4" />
-              Anterior
-            </Button>
-            <span className="text-sm text-muted-foreground">Página {pagination.page}</span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => handlePageChange(pagination.page + 1)}
-              disabled={!pagination.hasMore}
-            >
-              Siguiente
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+        <NotificationsTablePagination
+          pagination={pagination}
+          currentResultsCount={filteredNotifications.length}
+          onPageChange={handlePageChange}
+        />
       </div>
     </div>
   )
