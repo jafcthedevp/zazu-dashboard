@@ -70,15 +70,15 @@ export function NotificationsFilters({ onApplyFilters, activeFilters }: Notifica
               />
             </div>
 
-            {/* <div className="grid gap-2">
+            <div className="grid gap-2">
               <Label htmlFor="deviceId">ID de Dispositivo</Label>
               <Input
                 id="deviceId"
-                placeholder="Buscar por dispositivo..."
+                placeholder="Ej: P5-A, P6-B..."
                 value={filters.deviceId || ""}
                 onChange={(e) => setFilters({ ...filters, deviceId: e.target.value })}
               />
-            </div> */}
+            </div>
 
             {/* <div className="grid gap-2">
               <Label htmlFor="name">Nombre</Label>

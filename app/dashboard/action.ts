@@ -37,7 +37,7 @@ export async function getNotifications(
     let response
 
     const hasComplexFilters =
-      filters && (filters.code || filters.name || filters.amountMin || filters.amountMax || filters.dateFrom || filters.dateTo)
+      filters && (filters.code || filters.deviceId || filters.name || filters.amountMin || filters.amountMax || filters.dateFrom || filters.dateTo)
 
     if (hasComplexFilters) {
       response = await notificationsApi.search({
