@@ -1,10 +1,11 @@
 "use client"
 
-import { LogOut, Search } from "lucide-react"
+import { LogOut, Search, Info } from "lucide-react"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Badge } from "@/components/ui/badge"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { NotificationsFilters, type FilterValues } from "@/components/notifications-filters"
 
 type FilterStatus = "all" | "pending" | "validated" | "rejected"
@@ -43,13 +44,27 @@ export function NotificationsNavbar({
           </div>
 
           <nav className="flex items-center gap-1">
-            <Button
-              variant={activeFilter === "all" ? "default" : "ghost"}
-              size="sm"
-              onClick={() => onFilterChange("all")}
-            >
-              Todas
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button
+                variant={activeFilter === "all" ? "default" : "ghost"}
+                size="sm"
+                onClick={() => onFilterChange("all")}
+              >
+                Todas
+              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button className="text-muted-foreground hover:text-foreground transition-colors p-1">
+                    <Info className="h-3.5 w-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent side="bottom" className="max-w-xs">
+                  <p className="text-xs">
+                    Muestra todas las notificaciones paginadas. El conteo exacto no está disponible debido a la arquitectura de DynamoDB.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </div>
 
             <Button
               variant={activeFilter === "pending" ? "default" : "ghost"}

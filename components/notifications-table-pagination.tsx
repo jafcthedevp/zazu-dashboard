@@ -1,7 +1,8 @@
 "use client"
 
-import { ChevronLeft, ChevronRight } from "lucide-react"
+import { ChevronLeft, ChevronRight, Info } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import type { PaginationInfo } from "@/types/notifications"
 
 interface NotificationsTablePaginationProps {
@@ -17,10 +18,26 @@ export function NotificationsTablePagination({
 }: NotificationsTablePaginationProps) {
   return (
     <div className="mt-4 flex items-center justify-between">
-      <p className="text-sm text-muted-foreground">
-        Mostrando {currentResultsCount} resultados
-        {pagination.hasMore && " (hay más disponibles)"}
-      </p>
+      <div className="flex items-center gap-2">
+        <p className="text-sm text-muted-foreground">
+          Mostrado {currentResultsCount} resultados
+          {pagination.hasMore && " (Hay mas contenido disponible)"}
+        </p>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button className="text-muted-foreground hover:text-foreground transition-colors">
+              <Info className="h-4 w-4" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent side="top" className="max-w-xs">
+            <p className="text-xs">
+              <strong>Como funciona la paginacción:</strong><br />
+              • Cada pagina muestra {pagination.pageSize} notificaciones<br />
+              • Usar Anterior/Siguiente botones para navegar<br />
+            </p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
       <div className="flex items-center gap-2">
         <Button
           variant="outline"
