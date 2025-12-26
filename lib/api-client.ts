@@ -3,7 +3,7 @@ import { Notification, UpdateStatusPayload, PaginatedResponse } from '@/types/no
 
 const API_BASE_URL = 'https://q5v1k37mn6.execute-api.us-east-1.amazonaws.com/';
 
-export const DEFAULT_PAGE_SIZE = 20;
+export const DEFAULT_PAGE_SIZE = 50;
 
 export const apiClient = axios.create({
   baseURL: API_BASE_URL,

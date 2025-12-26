@@ -27,7 +27,7 @@ export default async function NotificationsPage({ searchParams }: PageProps) {
   console.log("[v0] Status filter from URL:", params.status)
 
   const page = Number(params.page) || 1
-  const pageSize = Number(params.pageSize) || 20
+  const pageSize = Number(params.pageSize) || 50
 
   const currentFilters = {
     status: params.status,
