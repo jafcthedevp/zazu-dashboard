@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import type { Notification, NotificationStatus } from "@/types/notifications"
-import { formatDate, formatAmount } from "@/lib/utils"
+import { formatAmount } from "@/lib/utils"
+import { ClientDate } from "@/components/client-date"
 
 interface NotificationRowProps {
   notification: Notification
@@ -41,7 +42,9 @@ export function NotificationRow({ notification, isUpdating, onStatusUpdate }: No
           {config.label}
         </Badge>
       </TableCell>
-      <TableCell className="text-muted-foreground">{formatDate(notification.timestamp)}</TableCell>
+      <TableCell className="text-muted-foreground">
+        <ClientDate timestamp={notification.timestamp} />
+      </TableCell>
       <TableCell>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>

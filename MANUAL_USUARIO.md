@@ -260,7 +260,7 @@ En la parte inferior de la tabla encontrará:
 
 **Para ir a la página siguiente:**
 1. Haga clic en el botón "Siguiente"
-2. La tabla cargará los siguientes 20 resultados
+2. La tabla cargará los siguientes 50 resultados
 
 **Para regresar a la página anterior:**
 1. Haga clic en el botón "Anterior"
@@ -280,7 +280,7 @@ En la parte inferior de la tabla encontrará:
 ### Consultas Generales
 
 **¿Cuántas notificaciones puedo ver a la vez?**
-Por defecto se muestran 20 notificaciones por página. Puede navegar entre páginas para ver más resultados.
+Por defecto se muestran 50 notificaciones por página. Puede navegar entre páginas para ver más resultados.
 
 **¿Se actualizan automáticamente las notificaciones?**
 No. Debe recargar la página (F5) para ver nuevas notificaciones que hayan llegado después de cargar el dashboard.
