@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { Notification, UpdateStatusPayload, PaginatedResponse } from '@/types/notifications';
 
-const API_BASE_URL = 'https://brgzom3jw4.execute-api.us-east-1.amazonaws.com';
+const API_BASE_URL = 'https://q5v1k37mn6.execute-api.us-east-1.amazonaws.com/';
 
 export const DEFAULT_PAGE_SIZE = 20;
 
