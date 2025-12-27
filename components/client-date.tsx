@@ -1,23 +1,19 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { formatDate } from "@/lib/utils"
+import { useClientDate } from "@/lib/hooks/use-client-date"
 
 interface ClientDateProps {
   timestamp: number
   className?: string
+  placeholder?: string
 }
 
-export function ClientDate({ timestamp, className }: ClientDateProps) {
-  const [mounted, setMounted] = useState(false)
+export function ClientDate({
+  timestamp,
+  className,
+  placeholder = "--/--/----, --:--"
+}: ClientDateProps) {
+  const formattedDate = useClientDate(timestamp, placeholder)
 
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) {
-    return <span className={className}>--/--/----, --:--</span>
-  }
-
-  return <span className={className}>{formatDate(timestamp)}</span>
+  return <span className={className}>{formattedDate}</span>
 }

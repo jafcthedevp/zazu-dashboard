@@ -26,15 +26,6 @@ apiClient.interceptors.response.use(
     return response;
   },
   (error) => {
-    const errorInfo = {
-      message: error?.message || 'Unknown error',
-      status: error?.response?.status,
-      statusText: error?.response?.statusText,
-      url: error?.config?.url,
-      data: error?.response?.data,
-      fullError: error,
-    };
-
     return Promise.reject(error);
   }
 );
